@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Gramin Arogya – Rural Healthcare Connect</title>
+<style>
+:root{--g:#0f766e;--r:#dc2626;--bg:#f4f8f7;--c:#fff;--t:#1f2937;--m:#6b7280}
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,Helvetica,sans-serif;background:var(--bg);color:var(--t);line-height:1.5}
+header{background:var(--g);color:#fff;padding:14px 20px;display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:10px;position:sticky;top:0;z-index:5}
+header h1{margin:0;font-size:1.3rem}
+nav a{color:#fff;text-decoration:none;margin-left:14px;font-size:.95rem}
+.sos{background:var(--r);color:#fff;padding:18px 20px;text-align:center}
+.sos a{display:inline-block;background:#fff;color:var(--r);font-weight:bold;text-decoration:none;padding:12px 22px;border-radius:8px;margin:6px;font-size:1.1rem}
+section{max-width:1100px;margin:0 auto;padding:26px 16px}
+h2{color:var(--g);border-bottom:3px solid var(--g);display:inline-block;padding-bottom:3px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:16px}
+.card{background:var(--c);border-radius:10px;padding:16px;box-shadow:0 1px 4px rgba(0,0,0,.12)}
+.card h3{margin:0 0 6px;color:var(--g)}
+.tag{display:inline-block;background:#d1fae5;color:#065f46;border-radius:12px;padding:2px 10px;font-size:.8rem;margin:2px 2px 2px 0}
+.tag.off{background:#fee2e2;color:#991b1b}
+.call{display:inline-block;background:var(--g);color:#fff;text-decoration:none;padding:7px 14px;border-radius:6px;margin:6px 6px 0 0;font-size:.9rem}
+.call.alt{background:#2563eb}
+input,select,textarea{padding:10px;border:1px solid #cbd5e1;border-radius:6px;font-size:1rem;width:100%;margin:6px 0}
+.bar{display:flex;gap:10px;flex-wrap:wrap}.bar>*{flex:1;min-width:200px}
+.warn{color:var(--r);font-weight:bold}
+small,.m{color:var(--m)}
+button{background:var(--g);color:#fff;border:0;padding:10px 18px;border-radius:6px;font-size:1rem;cursor:pointer}
+footer{background:#134e4a;color:#d1fae5;text-align:center;padding:16px;font-size:.9rem}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🏥 Gramin Arogya – Rural Healthcare Connect</h1>
+  <nav><a href="#hospitals">Hospitals</a><a href="#doctors">Doctors</a><a href="#diseases">Diseases</a><a href="#firstaid">First Aid</a><a href="#appointment">Appointment</a></nav>
+</header>
+
+<div class="sos">
+  <strong>EMERGENCY? Call immediately:</strong><br>
+  <a href="tel:108">🚑 Ambulance 108</a>
+  <a href="tel:112">🆘 Emergency 112</a>
+  <a href="#hospitals" onclick="nearest()">📍 Find nearest hospital</a>
+</div>
+
+<section id="hospitals">
+  <h2>Nearby Hospitals &amp; Facilities</h2>
+  <div class="bar">
+    <input id="hsearch" placeholder="Search hospital, village or facility (e.g. ICU, X-ray)…" oninput="renderH()">
+    <select id="htype" onchange="renderH()">
+      <option value="">All types</option><option>Primary Health Centre</option><option>Government Hospital</option><option>Private Hospital</option>
+    </select>
+  </div>
+  <p class="m" id="hmsg"></p>
+  <div class="grid" id="hlist"></div>
+</section>
+
+<section id="doctors">
+  <h2>Doctors &amp; Contact Numbers</h2>
+  <input id="dsearch" placeholder="Search by doctor name or speciality (e.g. Paediatrician)…" oninput="renderD()">
+  <div class="grid" id="dlist"></div>
+</section>
+
+<section id="diseases">
+  <h2>Common Diseases &amp; Symptoms</h2>
+  <input id="ssearch" placeholder="Type a disease or a symptom (e.g. fever, cough)…" oninput="renderS()">
+  <div class="grid" id="slist"></div>
+  <p class="warn">⚠ This is general information only, not a diagnosis. Please consult a doctor.</p>
+</section>
+
+<section id="firstaid">
+  <h2>Go to hospital immediately if…</h2>
+  <div class="card">
+    <ul>
+      <li>Chest pain, breathlessness, or fainting</li>
+      <li>Heavy bleeding, severe burns, or accident injury</li>
+      <li>Snake / dog bite, poisoning</li>
+      <li>Stroke signs: face drooping, arm weakness, slurred speech</li>
+      <li>Pregnancy: labour pain, bleeding, or no baby movement</li>
+      <li>High fever with seizures, or an unconscious person</li>
+    </ul>
+    <p>While waiting for the ambulance: keep the patient calm, lying down, loosen tight clothes, and do not give food or water if unconscious.</p>
+  </div>
+</section>
+
+<section id="appointment">
+  <h2>Request Appointment / Call-back</h2>
+  <div class="card">
+    <input id="aname" placeholder="Patient name">
+    <input id="aphone" type="tel" placeholder="Phone number">
+    <input id="avillage" placeholder="Village / Town">
+    <select id="ahosp"></select>
+    <textarea id="aprob" rows="3" placeholder="Describe the problem briefly"></textarea>
+    <button onclick="sendReq()">Submit Request</button>
+    <p id="amsg"></p>
+  </div>
+</section>
+
+<footer>
+  © Rural Healthcare Connect – Student Project. Hospital data shown is sample data; replace with real details.<br>
+  Emergency: 108 (Ambulance) | 112 (All emergencies)
+</footer>
+
+<script>
+/* ======= EDIT THIS DATA WITH REAL HOSPITAL DETAILS ======= */
+const hospitals = [
+ {name:"Primary Health Centre – Village A", type:"Primary Health Centre", dist:3, addr:"Main Road, Village A", phone:"0000000001", open:"24 hours",
+  fac:["OPD","Ambulance","Pharmacy","Maternity ward","Vaccination","Lab tests"], er:true,
+  lat:11.0168, lng:76.9558},
+ {name:"Government Taluk Hospital", type:"Government Hospital", dist:12, addr:"Taluk Headquarters, Town B", phone:"0000000002", open:"24 hours",
+  fac:["Emergency / Casualty","ICU","X-ray","Blood bank","Surgery","Operation theatre","Ambulance","Pharmacy","Dialysis"], er:true,
+  lat:11.0300, lng:77.0100},
+ {name:"City Care Multispeciality Hospital", type:"Private Hospital", dist:25, addr:"Bypass Road, City C", phone:"0000000003", open:"24 hours",
+  fac:["Emergency / Casualty","ICU","CT scan","MRI","Cardiology","Neurology","Trauma care","Blood bank","Ambulance","Pharmacy"], er:true,
+  lat:11.0050, lng:76.9700}
+];
+const doctors = [
+ {name:"Dr. A. Kumar", spec:"General Physician", hosp:0, phone:"0000000011", time:"9 AM – 4 PM"},
+ {name:"Dr. S. Lakshmi", spec:"Gynaecologist", hosp:0, phone:"0000000012", time:"10 AM – 2 PM"},
+ {name:"Dr. R. Prakash", spec:"Surgeon", hosp:1, phone:"0000000013", time:"9 AM – 1 PM"},
+ {name:"Dr. M. Fatima", spec:"Paediatrician", hosp:1, phone:"0000000014", time:"10 AM – 5 PM"},
+ {name:"Dr. V. Raman", spec:"Cardiologist", hosp:2, phone:"0000000015", time:"11 AM – 6 PM"},
+ {name:"Dr. N. Priya", spec:"Orthopaedic", hosp:2, phone:"0000000016", time:"9 AM – 3 PM"}
+];
+const diseases = [
+ {n:"Fever / Viral fever", s:["High temperature","Chills","Body pain","Headache","Weakness"], a:"Rest, fluids; see a doctor if fever lasts over 3 days."},
+ {n:"Dengue", s:["Sudden high fever","Severe headache","Pain behind eyes","Joint pain","Skin rash","Low platelets"], a:"Get a blood test; drink plenty of fluids; avoid self-medicating with aspirin."},
+ {n:"Malaria", s:["Fever with chills","Sweating","Headache","Vomiting","Fatigue"], a:"Needs a blood test and prompt treatment."},
+ {n:"Typhoid", s:["Prolonged fever","Stomach pain","Weakness","Loss of appetite","Constipation or diarrhoea"], a:"Drink safe water; see a doctor for tests and antibiotics."},
+ {n:"Diarrhoea / Cholera", s:["Loose watery stools","Dehydration","Vomiting","Stomach cramps"], a:"Start ORS immediately; go to hospital if severe or blood in stool."},
+ {n:"Tuberculosis (TB)", s:["Cough over 2 weeks","Weight loss","Night sweats","Blood in sputum","Fever"], a:"Free testing and treatment at government centres."},
+ {n:"Diabetes", s:["Frequent urination","Excess thirst","Hunger","Blurred vision","Slow-healing wounds"], a:"Check blood sugar; control diet and take regular treatment."},
+ {n:"High Blood Pressure", s:["Headache","Dizziness","Chest discomfort","Blurred vision"], a:"Often has no symptoms; check BP regularly; reduce salt."},
+ {n:"Heart Attack (Emergency)", s:["Chest pain","Pain in left arm or jaw","Sweating","Breathlessness","Nausea"], a:"Call 108 immediately."},
+ {n:"Asthma / Respiratory infection", s:["Wheezing","Cough","Breathlessness","Chest tightness"], a:"Use prescribed inhaler; seek help if breathing is difficult."},
+ {n:"Jaundice", s:["Yellow eyes and skin","Dark urine","Fatigue","Loss of appetite"], a:"Avoid oily food and alcohol; consult a doctor."},
+ {n:"Anaemia", s:["Tiredness","Pale skin","Dizziness","Fast heartbeat"], a:"Iron-rich food and tablets as advised; common in women and children."},
+ {n:"Skin infection / Scabies", s:["Itching","Rash","Red bumps","Sores"], a:"Keep clean; visit a doctor for medicine."},
+ {n:"Snake bite (Emergency)", s:["Fang marks","Swelling","Pain","Blurred vision","Difficulty breathing"], a:"Keep the person still, do not cut or suck the wound, go to hospital now."}
+];
+/* ========================================================== */
+
+const $ = id => document.getElementById(id);
+const tel = n => "tel:" + n;
+
+function renderH(list){
+  const q = $("hsearch").value.toLowerCase(), t = $("htype").value;
+  list = (list || hospitals).filter(h =>
+    (!t || h.type === t) &&
+    (h.name + h.addr + h.fac.join(" ")).toLowerCase().includes(q));
+  $("hlist").innerHTML = list.map(h => `
+    <div class="card">
+      <h3>${h.name}</h3>
+      <div class="m">${h.type} • ${h.dist ? h.dist.toFixed ? h.dist.toFixed(1) : h.dist : "?"} km away</div>
+      <div>📍 ${h.addr}</div>
+      <div>🕒 ${h.open}</div>
+      <div>${h.er ? '<span class="tag">Emergency available</span>' : '<span class="tag off">No emergency</span>'}</div>
+      <p><b>Facilities:</b><br>${h.fac.map(f => `<span class="tag">${f}</span>`).join("")}</p>
+      <a class="call" href="${tel(h.phone)}">📞 Call ${h.phone}</a>
+      <a class="call alt" target="_blank" rel="noopener" href="https://www.google.com/maps/dir/?api=1&destination=${h.lat},${h.lng}">🗺 Directions</a>
+    </div>`).join("") || "<p>No hospital found.</p>";
+}
+function renderD(){
+  const q = $("dsearch").value.toLowerCase();
+  $("dlist").innerHTML = doctors
+    .filter(d => (d.name + d.spec).toLowerCase().includes(q))
+    .map(d => `
+    <div class="card">
+      <h3>${d.name}</h3>
+      <div>${d.spec}</div>
+      <div class="m">${hospitals[d.hosp].name}</div>
+      <div>🕒 ${d.time}</div>
+      <a class="call" href="${tel(d.phone)}">📞 ${d.phone}</a>
+    </div>`).join("") || "<p>No doctor found.</p>";
+}
+function renderS(){
+  const q = $("ssearch").value.toLowerCase();
+  $("slist").innerHTML = diseases
+    .filter(d => (d.n + d.s.join(" ")).toLowerCase().includes(q))
+    .map(d => `
+    <div class="card">
+      <h3>${d.n}</h3>
+      <p>${d.s.map(x => `<span class="tag">${x}</span>`).join("")}</p>
+      <p class="m">${d.a}</p>
+    </div>`).join("") || "<p>No match. If you feel unwell, please contact a doctor.</p>";
+}
+function nearest(){
+  if(!navigator.geolocation){ $("hmsg").textContent = "Location not supported on this device."; return; }
+  $("hmsg").textContent = "Finding your location…";
+  navigator.geolocation.getCurrentPosition(p => {
+    const R = 6371, rad = x => x * Math.PI / 180;
+    hospitals.forEach(h => {
+      const dLat = rad(h.lat - p.coords.latitude), dLng = rad(h.lng - p.coords.longitude);
+      const a = Math.sin(dLat/2)**2 + Math.cos(rad(p.coords.latitude)) * Math.cos(rad(h.lat)) * Math.sin(dLng/2)**2;
+      h.dist = R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    });
+    hospitals.sort((a, b) => a.dist - b.dist);
+    $("hmsg").textContent = "Hospitals sorted by distance from you.";
+    renderH();
+  }, () => { $("hmsg").textContent = "Could not get location. Showing all hospitals."; });
+}
+function sendReq(){
+  const n = $("aname").value.trim(), p = $("aphone").value.trim();
+  if(!n || !p){ $("amsg").textContent = "Please enter name and phone number."; return; }
+  /* Demo only: connect to a backend (Firebase / PHP / Node) to really save requests */
+  $("amsg").textContent = "✅ Request received for " + n + ". The hospital will call you on " + p + ".";
+}
+$("ahosp").innerHTML = hospitals.map(h => `<option>${h.name}</option>`).join("");
+renderH(); renderD(); renderS();
+</script>
+</body>
+</html>
